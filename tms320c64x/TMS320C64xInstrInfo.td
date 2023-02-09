@@ -791,3 +791,11 @@ def NOP_n : TMS320C64xInstNop<
     ( ins nopop:$op),
     "NOP\t\t$op",
     []>;
+
+// fetch packet header
+def FPHEAD : TMS320C64xFpInst<
+    ( outs ),
+    ( ins parallel_field:$parallel, expansion_field:$expansion, layout_field:$layout ),
+    "FPHEAD\t\t$layout",
+    []>;
+

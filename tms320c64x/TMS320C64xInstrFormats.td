@@ -132,6 +132,24 @@ def nopop : Operand<i32>, PatLeaf<(imm), [{
     let EncoderMethod = "EncodeNop";
 }
 
+// Added for detecting the fphead in a tms320c64x+ processor
+
+def parallel_field : Operand<i32>, PatLeaf<(imm), [{ return isInt<14>(N->getZExtValue()); }]>
+{
+    let DecoderMethod = "DecodeParallelField";
+    let EncoderMethod = "EncodeParallelField";
+}
+def expansion_field : Operand<i32>, PatLeaf<(imm), [{ return isInt<7>(N->getZExtValue()); }]>
+{
+    let DecoderMethod = "DecodeExpansionField";
+    let EncoderMethod = "EncodeParallelField";
+}
+def layout_field : Operand<i32>, PatLeaf<(imm), [{ return isInt<7>(N->getZExtValue()); }]>
+{
+    let DecoderMethod = "DecodeLayoutField";
+    let EncoderMethod = "EncodeLayoutField";
+}
+
 // Instruction format superclass
 class TMS320C64xInst<dag outops, dag inops, string asmstr, list<dag> pattern> : Instruction {
     field bits<32> Inst;
@@ -150,6 +168,29 @@ class TMS320C64xInst<dag outops, dag inops, string asmstr, list<dag> pattern> : 
     let Inst{28} = condzero;
     let Inst{1} = side;
     let Inst{0} = parallel;
+    let Size = 4;
+    let isPredicable = 1;
+    let hasSideEffects = 0;
+    let Namespace = "TMS320C64x";
+}
+
+class TMS320C64xFpInst<dag outops, dag inops, string asmstr, list<dag> pattern> : Instruction {
+    field bits<32> Inst;
+    field bits<32> SoftFail = 0;
+
+    bits<7> layout;
+    bits<7> expansion;
+    bits<14> parallel;
+
+    let Inst{31-28} = 0b1110;
+    let Inst{27-21} = layout;
+    let Inst{20-14} = expansion;
+    let Inst{13-0} = parallel;
+
+    let OutOperandList = outops;
+    let InOperandList = inops;
+    let AsmString = asmstr;
+    let Pattern = pattern;
     let Size = 4;
     let isPredicable = 1;
     let hasSideEffects = 0;
